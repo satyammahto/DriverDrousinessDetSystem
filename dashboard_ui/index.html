@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d15">
+  <title>Driver Drowsiness Cockpit</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#live" aria-label="Driver Drowsiness Cockpit home">
+      <span class="brand-mark">⌁</span><span>DRIVER <b>DROWSINESS</b> COCKPIT</span>
+    </a>
+    <nav class="nav" aria-label="Main navigation">
+      <button class="nav-item active" data-page="live">Live</button>
+      <button class="nav-item" data-page="analytics">Analytics</button>
+      <button class="nav-item" data-page="fleet">Fleet</button>
+      <button class="nav-item" data-page="settings">Settings</button>
+    </nav>
+    <div id="system-pill" class="system-pill"><i class="dot"></i><span>CONNECTING</span></div>
+  </header>
+  <main id="app" aria-live="polite">
+    <section class="loading card"><span class="spinner"></span><strong>Connecting to the local detector</strong><p>Waiting for real camera and device status…</p></section>
+  </main>
+  <footer>LOCAL MONITORING <span>•</span> Camera frames and detector status stay on this computer.</footer>
+</body>
+</html>

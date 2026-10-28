@@ -13,10 +13,12 @@ The system uses Python and OpenCV to monitor a camera feed. It detects a face an
 - USB-camera video capture using OpenCV.
 - Face detection with OpenCV's Haar Cascade classifier.
 - Eye detection within the detected face region.
-- On-screen status for face detection, open/closed eyes, and the alert countdown.
+- Supplementary facial landmark analysis via MediaPipe FaceLandmarker (yawn count, head nod, look-away distraction).
+- Real-time Web Cockpit browser dashboard (`http://127.0.0.1:8000`) with live camera stream and telemetry.
 - Serial communication between Python and the ESP32 at **115200 baud**.
 - ESP32 output control for an LED and buzzer.
 - Camera and serial-port cleanup when the program exits.
+- Configurable environment options without editing code (`.env.example`).
 
 ## Hardware Required
 
@@ -41,9 +43,10 @@ The system uses Python and OpenCV to monitor a camera feed. It detects a face an
 
 ## Software Requirements
 
-- Python 3
-- OpenCV (`opencv-python`)
+- Python 3.9+
+- OpenCV (`opencv-contrib-python`)
 - PySerial (`pyserial`)
+- MediaPipe (`mediapipe`)
 - Arduino IDE
 - ESP32 board support installed in Arduino IDE
 
@@ -51,11 +54,23 @@ The system uses Python and OpenCV to monitor a camera feed. It detects a face an
 
 ```text
 DriverDrousinessDetSystem/
-├── dt_project.py                 # Python camera, detection, and serial-control program
+├── .env.example                  # Template for environment settings (COM port, camera index)
+├── .gitignore                    # Protects secrets, cache, venv, and local session logs
+├── dt_project.py                 # Core detector loop and ESP32 serial coordinator
+├── dashboard_server.py           # Loopback HTTP server streaming real-time metrics & video
+├── dashboard_ui/                 # Web cockpit assets (HTML, CSS, JS)
+│   ├── app.js
+│   ├── index.html
+│   └── styles.css
+├── vision_signals.py             # Supplementary facial mesh & landmark signals
+├── models/
+│   └── face_landmarker.task      # MediaPipe FaceLandmarker task model
+├── session_data/                 # Runtime session logs directory
 ├── sketch_oct25a/
 │   └── sketch_oct25a.ino         # ESP32 firmware for LED and buzzer control
-├── README.md
-└── WhatsApp Image ... .jpeg      # Project reference images
+├── requirements.txt              # Python package requirements
+├── README.md                     # Project documentation
+└── WhatsApp Image ... .jpeg      # Circuit and wiring reference photos
 ```
 
 ## Setup and Installation
@@ -77,13 +92,13 @@ It is recommended to use a virtual environment.
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install opencv-python pyserial
+pip install -r requirements.txt
 ```
 
-If PowerShell blocks virtual-environment activation, you can install the packages without activating the environment:
+If PowerShell blocks virtual-environment activation, you can install the packages directly:
 
 ```powershell
-python -m pip install opencv-python pyserial
+python -m pip install -r requirements.txt
 ```
 
 ### 3. Upload the ESP32 firmware
@@ -97,21 +112,23 @@ python -m pip install opencv-python pyserial
 
 The firmware initializes serial communication at **115200 baud**, matching the Python script.
 
-### 4. Set the correct serial port
+### 4. Configuration (Safe Environment Settings)
 
-In `dt_project.py`, update this line to match the port shown for your ESP32 in Arduino IDE or Windows Device Manager:
+You can configure settings using environment variables or by copying `.env.example` to `.env`:
 
-```python
-SERIAL_PORT = "COM8"
+```powershell
+Copy-Item .env.example .env
 ```
 
-For example, if your ESP32 appears as `COM5`, change it to:
+Key configuration options:
+- `SERIAL_PORT`: COM port assigned to ESP32 (e.g. `COM8`, `COM3`, `/dev/ttyUSB0`)
+- `BAUD_RATE`: Serial baud rate (default: `115200`)
+- `CAMERA_INDEX`: Camera device index (default: `0`)
+- `DASHBOARD_PORT`: Local browser dashboard port (default: `8000`)
+- `CLOSED_TIME_THRESHOLD`: Eye closure time threshold before trigger (default: `2.0` seconds)
+- `BUZZER_DURATION`: Duration the buzzer stays active (default: `5.0` seconds)
 
-```python
-SERIAL_PORT = "COM5"
-```
-
-The port name is computer-specific. You do **not** need to change the baud rate unless you also change it in the ESP32 firmware; both sides should use `115200`.
+The `.env` file is excluded in `.gitignore` so your personal port settings and any future credentials remain private and will not be pushed to GitHub.
 
 ### 5. Connect the camera and run the Python program
 
